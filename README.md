@@ -25,7 +25,19 @@
 bunx skills add PFCCLab/paddle-skills --skill "paddle-pull-request"
 ```
 
+如果你想要全局安装所有技能，可以使用以下命令：
+
+```bash
+bunx skills add PFCCLab/paddle-skills --skill "paddle-pull-request -g
+```
+
 安装成功后，AI 助手即可在需要创建或更新 Paddle 相关仓库的 PR 时调用 `paddle-pull-request` skill，并按照 Paddle 官方模板生成或补全 PR 描述。
+
+如果你想要安装所有技能，可以使用以下命令：
+
+```bash
+bunx skills add PFCCLab/paddle-skills --all
+```
 
 # 参考项目
 

@@ -1,0 +1,43 @@
+name: Check PR Title
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+jobs:
+  check-pr-title:
+    name: Validate PR title format
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    steps:
+      - name: Check PR title
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          echo "PR title: $PR_TITLE"
+          # Match the format defined in CONTRIBUTING.md:
+          # <emoji> <type>(<scope>): <subject>  or  <emoji> <type>: <subject>
+          # Allowed types: add, update, fix, docs, chore
+          if echo "$PR_TITLE" | grep -Pq '^(✨ add|⬆️ update|🐛 fix|📝 docs|🔧 chore)(\([^)]+\))?: .+'; then
+            echo "✅ PR title format is valid."
+          else
+            echo "❌ PR title does not match the required format."
+            echo ""
+            echo "Expected format: <emoji> <type>(<scope>): <subject>"
+            echo ""
+            echo "Allowed types:"
+            echo "  ✨ add(<skill-name>): <subject>"
+            echo "  ⬆️ update(<skill-name>): <subject>"
+            echo "  🐛 fix(<skill-name>): <subject>"
+            echo "  📝 docs: <subject>"
+            echo "  🔧 chore: <subject>"
+            echo ""
+            echo "Examples:"
+            echo "  ✨ add(paddle-trace): initial version"
+            echo "  ⬆️ update(paddle-pull-request): support multi template"
+            echo "  🐛 fix(paddle-debug): handle empty log path"
+            echo "  📝 docs: update contributing.md"
+            echo "  🔧 chore: upgrade actions dependencies"
+            exit 1
+          fi

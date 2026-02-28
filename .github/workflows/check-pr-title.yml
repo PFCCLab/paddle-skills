@@ -17,9 +17,10 @@ jobs:
         run: |
           echo "PR title: $PR_TITLE"
           # Match the format defined in CONTRIBUTING.md:
-          # <emoji> <type>(<scope>): <subject>  or  <emoji> <type>: <subject>
-          # Allowed types: add, update, fix, docs, chore
-          if echo "$PR_TITLE" | grep -Pq '^(✨ add|⬆️ update|🐛 fix|📝 docs|🔧 chore)(\([^)]+\))?: .+'; then
+          # ✨ add / ⬆️ update / 🐛 fix require a (<skill-name>) scope — for skill changes only
+          # 📝 docs / 🔧 chore take an optional scope — for docs, CI, or other infra changes
+          if echo "$PR_TITLE" | grep -Pq '^(✨ add|⬆️ update|🐛 fix)\([^)]+\): .+' || \
+             echo "$PR_TITLE" | grep -Pq '^(📝 docs|🔧 chore)(\([^)]+\))?: .+'; then
             echo "✅ PR title format is valid."
           else
             echo "❌ PR title does not match the required format."
@@ -27,17 +28,20 @@ jobs:
             echo "Expected format: <emoji> <type>(<scope>): <subject>"
             echo ""
             echo "Allowed types:"
-            echo "  ✨ add(<skill-name>): <subject>"
-            echo "  ⬆️ update(<skill-name>): <subject>"
-            echo "  🐛 fix(<skill-name>): <subject>"
-            echo "  📝 docs: <subject>"
-            echo "  🔧 chore: <subject>"
+            echo "  ✨ add(<skill-name>): <subject>   # adding a new skill"
+            echo "  ⬆️ update(<skill-name>): <subject> # updating an existing skill"
+            echo "  🐛 fix(<skill-name>): <subject>   # fixing a skill issue"
+            echo "  📝 docs: <subject>                 # documentation changes"
+            echo "  🔧 chore: <subject>                # CI, infra, or other misc changes"
+            echo ""
+            echo "Note: ✨ add / ⬆️ update / 🐛 fix are for skill changes and require a skill-name scope."
+            echo "      For CI or infrastructure changes, use 🔧 chore instead."
             echo ""
             echo "Examples:"
             echo "  ✨ add(paddle-trace): initial version"
             echo "  ⬆️ update(paddle-pull-request): support multi template"
             echo "  🐛 fix(paddle-debug): handle empty log path"
             echo "  📝 docs: update contributing.md"
-            echo "  🔧 chore: upgrade actions dependencies"
+            echo "  🔧 chore: add CI workflow for PR title validation"
             exit 1
           fi

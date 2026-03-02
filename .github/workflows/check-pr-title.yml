@@ -16,32 +16,14 @@ jobs:
           PR_TITLE: ${{ github.event.pull_request.title }}
         run: |
           echo "PR title: $PR_TITLE"
-          # Match the format defined in CONTRIBUTING.md:
-          # ✨ add / ⬆️ update / 🐛 fix require a (<skill-name>) scope — for skill changes only
-          # 📝 docs / 🔧 chore take an optional scope — for docs, CI, or other infra changes
+          # Format defined in CONTRIBUTING.md:
+          # ✨ add / ⬆️ update / 🐛 fix require a (<skill-name>) scope (skill changes only)
+          # 📝 docs / 🔧 chore take an optional scope (docs, CI, infra, etc.)
           if echo "$PR_TITLE" | grep -Pq '^(✨ add|⬆️ update|🐛 fix)\([^)]+\): .+' || \
              echo "$PR_TITLE" | grep -Pq '^(📝 docs|🔧 chore)(\([^)]+\))?: .+'; then
             echo "✅ PR title format is valid."
           else
             echo "❌ PR title does not match the required format."
-            echo ""
-            echo "Expected format: <emoji> <type>(<scope>): <subject>"
-            echo ""
-            echo "Allowed types:"
-            echo "  ✨ add(<skill-name>): <subject>   # adding a new skill"
-            echo "  ⬆️ update(<skill-name>): <subject> # updating an existing skill"
-            echo "  🐛 fix(<skill-name>): <subject>   # fixing a skill issue"
-            echo "  📝 docs: <subject>                 # documentation changes"
-            echo "  🔧 chore: <subject>                # CI, infra, or other misc changes"
-            echo ""
-            echo "Note: ✨ add / ⬆️ update / 🐛 fix are for skill changes and require a skill-name scope."
-            echo "      For CI or infrastructure changes, use 🔧 chore instead."
-            echo ""
-            echo "Examples:"
-            echo "  ✨ add(paddle-trace): initial version"
-            echo "  ⬆️ update(paddle-pull-request): support multi template"
-            echo "  🐛 fix(paddle-debug): handle empty log path"
-            echo "  📝 docs: update contributing.md"
-            echo "  🔧 chore: add CI workflow for PR title validation"
+            echo "See CONTRIBUTING.md for the convention and examples."
             exit 1
           fi

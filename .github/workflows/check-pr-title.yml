@@ -1,0 +1,29 @@
+name: Check PR Title
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+jobs:
+  check-pr-title:
+    name: Validate PR title format
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    steps:
+      - name: Check PR title
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          echo "PR title: $PR_TITLE"
+          # Format defined in CONTRIBUTING.md:
+          # ✨ add / ⬆️ update / 🐛 fix require a (<skill-name>) scope (skill changes only)
+          # 📝 docs / 🔧 chore take an optional scope (docs, CI, infra, etc.)
+          if echo "$PR_TITLE" | grep -Pq '^(✨ add|⬆️ update|🐛 fix)\([^)]+\): .+' || \
+             echo "$PR_TITLE" | grep -Pq '^(📝 docs|🔧 chore)(\([^)]+\))?: .+'; then
+            echo "✅ PR title format is valid."
+          else
+            echo "❌ PR title does not match the required format."
+            echo "See CONTRIBUTING.md for the convention and examples."
+            exit 1
+          fi

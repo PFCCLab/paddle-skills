@@ -15,15 +15,69 @@ jobs:
         env:
           PR_TITLE: ${{ github.event.pull_request.title }}
         run: |
+          echo "::group::PR Title Check"
           echo "PR title: $PR_TITLE"
+          echo "::endgroup::"
+
           # Format defined in CONTRIBUTING.md:
-          # ✨ add / ⬆️ update / 🐛 fix require a (<skill-name>) scope (skill changes only)
-          # 📝 docs / 🔧 chore take an optional scope (docs, CI, infra, etc.)
+          # ✨ add / ⬆️ update / 🐛 fix require a (<skill-name>) scope
+          # 📝 docs / 🔧 chore take an optional scope
           if echo "$PR_TITLE" | grep -Pq '^(✨ add|⬆️ update|🐛 fix)\([^)]+\): .+' || \
              echo "$PR_TITLE" | grep -Pq '^(📝 docs|🔧 chore)(\([^)]+\))?: .+'; then
             echo "✅ PR title format is valid."
-          else
-            echo "❌ PR title does not match the required format."
-            echo "See CONTRIBUTING.md for the convention and examples."
-            exit 1
+            exit 0
           fi
+
+          # --- 失败：给出详细诊断 ---
+          echo ""
+          echo "❌ PR title does not match the required format."
+          echo ""
+          echo "========================================="
+          echo "  Expected format (二选一):"
+          echo "========================================="
+          echo ""
+          echo "  Skill 变更 (scope 必填):"
+          echo "    ✨ add(<skill-name>): <description>"
+          echo "    ⬆️ update(<skill-name>): <description>"
+          echo "    🐛 fix(<skill-name>): <description>"
+          echo ""
+          echo "  文档/杂项 (scope 可选):"
+          echo "    📝 docs: <description>"
+          echo "    📝 docs(<scope>): <description>"
+          echo "    🔧 chore: <description>"
+          echo "    🔧 chore(<scope>): <description>"
+          echo ""
+          echo "========================================="
+          echo "  Examples:"
+          echo "========================================="
+          echo "    ✨ add(paddle-debug): initial version"
+          echo "    ⬆️ update(paddle-pull-request): support multi template"
+          echo "    🐛 fix(paddle-debug): handle empty log path"
+          echo "    📝 docs: update contributing guide"
+          echo "    🔧 chore(ci): upgrade actions dependencies"
+          echo ""
+          echo "========================================="
+          echo "  Common mistakes:"
+          echo "========================================="
+
+          # 逐项诊断常见错误
+          if ! echo "$PR_TITLE" | grep -Pq '^(✨|⬆️|🐛|📝|🔧)'; then
+            echo "  ⚠ Missing emoji prefix. Title must start with one of: ✨ ⬆️ 🐛 📝 🔧"
+          fi
+
+          if echo "$PR_TITLE" | grep -Pq '^(✨|⬆️|🐛)' && ! echo "$PR_TITLE" | grep -Pq '\([^)]+\)'; then
+            echo "  ⚠ Missing scope. ✨ add / ⬆️ update / 🐛 fix require a (<skill-name>) scope."
+            echo "    e.g.: ✨ add(my-skill): ..."
+          fi
+
+          if echo "$PR_TITLE" | grep -Pq '(feat|feature|new|imp|improve)'; then
+            echo "  ⚠ Use '✨ add' instead of 'feat/feature/new'. Use '⬆️ update' instead of 'improve'."
+          fi
+
+          if ! echo "$PR_TITLE" | grep -Pq ': .+'; then
+            echo "  ⚠ Missing colon separator or description. Format: <type>(<scope>): <description>"
+          fi
+
+          echo ""
+          echo "See CONTRIBUTING.md for the full convention."
+          exit 1

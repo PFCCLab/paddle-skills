@@ -11,6 +11,20 @@ description: |
 
 **先诊断，再修复** — 不要在没有充分分析的情况下盲目修改代码。
 
+## 触发条件 / 何时使用
+
+在以下场景优先使用本 skill：
+
+- Paddle 相关仓库的 PR 出现 **checks 失败、Approval 卡住、模板检查异常、Codestyle-Check 失败、主 CI / 单测失败**。
+- 需要先判断结论是否由 **当前 PR 引入**，还是 `develop` 已有问题、基础设施问题或 flaky。
+- 需要先产出 **诊断结论、证据和处理建议**，再决定是否修代码、@ reviewer，或执行 `/re-run all-failed`。
+
+以下场景**不要**直接切到 `paddle-pull-request`：
+
+- 还没有完成 CI 归因分析。
+- 结论仍需要 reviewer / maintainer 介入确认。
+- 已判断问题 **不是当前 PR 引入**，此时应先在现有 PR 中同步分析结果，而不是新开 PR。
+
 ## 流程
 
 ### 1. 快速分诊
@@ -94,6 +108,30 @@ gh pr checks <PR_NUMBER>
 - **基础设施 / flaky**：先保留证据；确认不是代码问题后，再考虑 `/re-run all-failed`。
 - **develop 已有问题**：明确标注不是当前 PR 引入，避免误修。
 
+### 6. 与 `paddle-pull-request` 的分工边界
+
+- `paddle-ci` 负责：**分析 CI、判断归因、给出修复或处理建议、完成必要的本地验证**。
+- `paddle-pull-request` 负责：**在确认需要提交/更新 PR 时，整理改动并创建或更新 PR**。
+
+按结论分流：
+
+- **结论是当前 PR 引入，且已经完成修复与验证** → 再交给 `paddle-pull-request` 更新现有 PR，或为修复分支创建 PR。
+- **结论不是当前 PR 引入**（例如 `develop` 已有问题、基础设施问题、flaky）→ **不要新开 PR**；应在当前 PR 中同步分析结论、证据和建议动作。
+- **需要 reviewer / maintainer 介入**（例如 Approval 缺失、需要特定 reviewer 判断、是否接受 flaky 重试需要人工确认）→ **不要新开 PR**；应在当前 PR 中 @ 相关 reviewer/maintainer 并说明需要的处理。
+
+可直接在 PR 中同步的最简内容：
+
+```markdown
+### CI 分析结论
+[当前 PR 引入 / develop 已有 / 基础设施 / flaky / 需要 reviewer 介入]
+
+### 证据
+[关键 job、报错、develop / 其他 PR 对比结果]
+
+### 建议动作
+[修复代码 / @ reviewer / /re-run all-failed / 暂不新开 PR]
+```
+
 ## Paddle CI 检查项
 
 ### PR 模板检查 (CheckPRTemplate)
@@ -112,18 +150,20 @@ gh pr checks <PR_NUMBER>
 
 **本地修复**：
 
-```bash
-# 安装依赖
-pip install pre-commit==2.17.0 cpplint==1.6.0 clang-format==13.0.0
+优先在仓库根目录运行本地 `uvx prek`，使用仓库当前配置完成格式检查与自动修复：
 
-# 运行检查并自动修复
+```bash
+# 运行本仓库配置的检查与自动修复
+uvx prek
+
+# 如需继续定位具体 pre-commit 问题，再按需执行
 pre-commit run --files $(git diff --name-only origin/develop)
 
 # 或检查所有文件
 pre-commit run --all-files
 ```
 
-优先关注格式化、lint、规则扫描失败；这类问题通常不需要分析通用 CI 基础设施。
+优先关注格式化、lint、规则扫描失败；这类问题通常不需要分析通用 CI 基础设施。若 `uvx prek` 自动修改了文件，先纳入当前修复并重新验证，再决定是否继续更新 PR。
 
 ### Approval 检查
 
@@ -200,3 +240,5 @@ done
 ## 完成后
 
 更新分析结论与修复计划；如果已经完成修复并验证通过，再使用 `paddle-pull-request` skill 创建或更新 PR。
+
+如果结论是**非当前 PR 引入**，或仍需 **reviewer / maintainer 介入**，则应把分析报告直接同步到当前 PR，**不要因此新开 PR**。

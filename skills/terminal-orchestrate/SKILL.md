@@ -1,17 +1,17 @@
 ---
-name: orchestrate
+name: terminal-orchestrate
 description: |
-  终端编排：本地 Claude Code / Ducc 作为 orchestrator，通过 Zellij 或 tmux 控制 worker pane 执行任务。
+  终端编排：本地 Agent 作为 orchestrator，通过 Zellij 或 tmux 控制 worker pane 执行任务。
   当用户需要在远程机器、容器、或本地另一个终端中执行命令和任务时使用此 skill。
-  触发场景包括：提到 "远程执行"、"tmux 编排"、"zellij 编排"、"orchestrate"、"worker"、"跨机器"、"远程容器"，
-  或需要把任务委托给另一个 pane / 终端 / 机器执行时。即使用户没有明确说 "orchestrate"，
+  触发场景包括：提到 "远程执行"、"tmux 编排"、"zellij 编排"、"跨机器"、"远程容器"，
+  或需要把任务委托给另一个 pane / 终端 / 机器执行时。即使用户没有明确说 "terminal-orchestrate"，
   只要涉及 "帮我在服务器上跑"、"让远程机器执行"、"SSH 过去跑一下" 等场景，都应触发。
 ---
 
-# 终端编排 (Orchestrate)
+# 终端编排 (Terminal Orchestrate)
 
 你是 orchestrator，通过 **Zellij**（优先）或 **tmux** 控制一个或多个 worker pane 完成任务。
-Worker 可以是远程 SSH 机器上的 Claude/Ducc 实例，也可以是普通 shell。
+Worker 可以是远程 SSH 机器上的 Agent 实例，也可以是普通 shell。
 
 ## 第零步：探测后端
 
@@ -128,9 +128,9 @@ wait_worker_zellij() {
     echo "{\"action\":\"focus\",\"target\":\"$target\"}" | zellij pipe --plugin "$plugin" --name orchestrate
     zellij action dump-screen /tmp/worker-screen.txt
     local tail=$(tail -5 /tmp/worker-screen.txt)
-    # Claude/Ducc idle detection
+    # Agent idle detection
     if echo "$tail" | grep -q "? for shortcuts"; then
-      echo "IDLE (claude/ducc)"
+      echo "IDLE (agent)"
       return 0
     fi
     # Shell idle detection
@@ -198,7 +198,7 @@ wait_worker_tmux() {
   while [ $elapsed -lt $max_wait ]; do
     local tail=$(tmux capture-pane -t "$target" -p | tail -5)
     if echo "$tail" | grep -q "? for shortcuts"; then
-      echo "IDLE (claude/ducc)"
+      echo "IDLE (agent)"
       return 0
     fi
     if echo "$tail" | grep -qE '[\$%#] $'; then
@@ -240,7 +240,7 @@ WORKER_B="work:${WINDOW}.3"  # 实际编号以 list-panes 为准
 - **Zellij 插件权限**：首次加载时需要用户授权，之后缓存
 - **tmux history**：默认滚动缓冲有限，必要时 `tmux set-option -t work history-limit 50000`
 - **SSH 断连恢复**：建议在远程也用 tmux/zellij，断开后进程仍存活
-- **API 限流**：如果 orchestrator 和 worker 都跑 Claude/Ducc 且共享配额，可能互相 429
+- **API 限流**：如果 orchestrator 和 worker 都跑 Agent 且共享配额，可能互相 429
 - **特殊字符**：send-keys/write-chars 中的 `"` `'` `$` 等需要正确转义
 
 ## 故障排查

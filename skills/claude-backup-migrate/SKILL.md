@@ -1,11 +1,11 @@
 ---
 name: claude-backup-migrate
-description: "备份、迁移、恢复 Claude Code / Ducc 的对话历史和配置。当用户提到备份、迁移、恢复对话、换机器、导出 session 等需求时使用此 Skill。"
+description: "备份、迁移、恢复 Claude Code 的对话历史和配置。当用户提到备份、迁移、恢复对话、换机器、导出 session 等需求时使用此 Skill。"
 ---
 
-# Claude Code / Ducc 备份迁移指南
+# Claude Code 备份迁移指南
 
-帮助用户备份、迁移、恢复 Claude Code（或 Ducc）的对话历史和配置数据。
+帮助用户备份、迁移、恢复 Claude Code 的对话历史和配置数据。
 
 ## 平台差异速查
 
